@@ -73,6 +73,10 @@ def read_fwf():
 def merge():
     import os
     import pandas as pd
+    import os
+    import pandas as pd
+    def path(file: str) -> str:
+        return os.path.join('/opt/airflow/data', file)
 
     dfs = [pd.read_csv(os.path.join(path(file)))
            for file in ['tolldata_unzipped/' + x for x in ['csv.csv', 'tsv.csv', 'fwf.csv']]
@@ -94,6 +98,18 @@ def transform():
     df.to_csv(path('result.csv'), index=False)
 
 
+@task.virtualenv(task_id='all_good', requirements=['pandas'])
+def all_good():
+    import os
+    import pandas as pd
+    def path(file: str) -> str:
+        return os.path.join('/opt/airflow/data', file)
+    df = pd.read_csv(path('result.csv'))
+    vehicle_types = list(df['Vehicle type'])
+    assert len(vehicle_types) == 10000
+    for v in vehicle_types:
+        assert v.upper() == v
+
 
 with DAG(
         'a_main_dag',
@@ -108,11 +124,7 @@ with DAG(
     empty_op = EmptyOperator(task_id='first_operator')
     cwd = BashOperator(task_id='cwd',
                        bash_command=f'echo "{os.getcwd()}" > cwd;')
-    csv = read_csv()
-    tsv = read_tsv()
-    fwf = read_fwf()
-    merge_task = merge()
 
     # chain(download, unzip, [csv, tsv, fwf], merge_task, transform)
-    download >> unzip >> [csv >> tsv >> fwf] >> merge_task >> transform()
+    download >> unzip >> [read_csv(), read_tsv(), read_fwf()] >> merge() >> transform() >> all_good()
 
