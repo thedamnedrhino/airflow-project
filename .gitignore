@@ -3,3 +3,6 @@
 !.gitignore
 data/*.tgz
 logs/
+
+data/*
+!data/.gitkeep
