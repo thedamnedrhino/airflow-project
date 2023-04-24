@@ -1,6 +1,11 @@
 # Tolldata processing
 
-## Pipeline Steps:
+An airflow pipeline to process tolldata for airflow running on docker.
+
+## Airflow config
+`data/` folder mounted on host machine in `docker-compose.yml`.
+
+## Pipeline Steps
 
 ### 1. Download tolldata. Output: `tolldata.tgz`.
 -- via airflow `BashOperator`.
